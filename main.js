@@ -4,6 +4,7 @@ const config = {
     type: Phaser.AUTO,
     width: 400,
     height: 600,
+    backgroundColor: "#222",
     scene: [GameScene]
 };
 
