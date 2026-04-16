@@ -57,3 +57,28 @@ createButtons() {
     accept.on("pointerdown", () => this.makeDecision(true));
     reject.on("pointerdown", () => this.makeDecision(false));
 }
+
+makeDecision(giveBed) {
+    let p = this.patients[this.currentIndex];
+
+    let survived = false;
+
+    if (giveBed && this.beds > 0) {
+        this.beds--;
+        survived = Math.random() < p.survival;
+    }
+
+    this.results.push({
+        name: p.name,
+        given: giveBed,
+        survived: survived
+    });
+
+    this.currentIndex++;
+
+    if (this.currentIndex >= this.patients.length) {
+        this.scene.start("ResultScene", { results: this.results });
+    } else {
+        this.renderUI();
+    }
+}
