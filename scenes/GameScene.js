@@ -25,3 +25,18 @@ create() {
 
     this.renderUI();
 }
+
+renderUI() {
+    this.children.removeAll();
+
+    let p = this.patients[this.currentIndex];
+
+    this.add.text(20, 20, `Beds left: ${this.beds}`, { color: "#000" });
+
+    this.add.text(20, 80, `Name: ${p.name}`, { color: "#000" });
+    this.add.text(20, 110, `Age: ${p.age}`, { color: "#000" });
+    this.add.text(20, 140, `Condition: ${p.condition}`, { color: "#000" });
+    this.add.text(20, 170, `Survival: ${Math.floor(p.survival * 100)}%`, { color: "#000" });
+
+    this.createButtons();
+}
