@@ -1,3 +1,4 @@
+import StartScene from "./scenes/StartScene.js";
 import GameScene from "./scenes/GameScene.js";
 import ResultScene from "./scenes/ResultScene.js";
 
