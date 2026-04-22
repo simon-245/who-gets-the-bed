@@ -1,244 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Who Gets the Bed</title>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <title>ICU Game</title>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-        }
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+    }
 
-        .container {
-            display: flex;
-            gap: 20px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
-            align-items: flex-start;
-        }
-
-        .container.intro-phase {
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container.intro-phase .game-section {
-            position: absolute;
-            left: -9999px;
-            top: 0;
-            width: 400px;
-            height: 600px;
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-
-        .game-section {
-            flex-shrink: 0;
-            width: 400px;
-            height: 600px;
-        }
-
-        #game-container {
-            width: 400px;
-            height: 600px;
-        }
-
-        .image-section {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            max-width: min(100%, 720px);
-        }
-
-        .container.intro-phase .image-section {
-            max-width: min(100%, 900px);
-            width: 100%;
-        }
-
-        .icu-room-stack {
-            position: relative;
-            width: 100%;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .icu-room-stack .icu-bg {
-            display: block;
-            width: 100%;
-            height: 600px;
-            object-fit: cover;
-            position: relative;
-            z-index: 0;
-        }
-
-        .icu-room-stack .girl-overlay,
-        .icu-room-stack .oldman-overlay,
-        .icu-room-stack .child-overlay {
-            position: absolute;
-            bottom: 0;
-            width: auto;
-            object-fit: contain;
-            object-position: bottom center;
-            pointer-events: none;
-            z-index: 1;
-            transition: opacity 0.45s ease;
-        }
-
-        .icu-room-stack .doctor-overlay {
-            position: absolute;
-            left: 26%;
-            bottom: 0;
-            transform: translateX(-50%);
-            max-height: 78%;
-            max-width: 30%;
-            width: auto;
-            object-fit: contain;
-            object-position: bottom center;
-            pointer-events: none;
-            z-index: 2;
-            transition: opacity 0.45s ease;
-        }
-
-        .icu-room-stack .girl-overlay {
-            right: 10%;
-            max-height: 72%;
-            max-width: 32%;
-        }
-
-        .icu-room-stack .oldman-overlay {
-            left: 74%;
-            transform: translateX(-50%);
-            max-height: 74%;
-            max-width: 30%;
-        }
-
-        .icu-room-stack .child-overlay {
-            right: 10%;
-            max-height: 70%;
-            max-width: 28%;
-        }
-
-        .icu-room-stack:not(.game-active) .girl-overlay,
-        .icu-room-stack:not(.game-active) .oldman-overlay,
-        .icu-room-stack:not(.game-active) .child-overlay {
-            opacity: 0;
-        }
-
-        .icu-room-stack:not(.game-active) .doctor-overlay {
-            opacity: 1;
-        }
-
-        /* Doctor stays on screen with the current patient */
-        .icu-room-stack.game-active .doctor-overlay {
-            opacity: 1;
-        }
-
-        .icu-room-stack.game-active .girl-overlay,
-        .icu-room-stack.game-active .oldman-overlay,
-        .icu-room-stack.game-active .child-overlay {
-            opacity: 0;
-        }
-
-        .icu-room-stack.game-active.portrait-anna .girl-overlay {
-            opacity: 1;
-            z-index: 3;
-        }
-
-        .icu-room-stack.game-active.portrait-john .oldman-overlay {
-            opacity: 1;
-            z-index: 3;
-        }
-
-        .icu-room-stack.game-active.portrait-maria .girl-overlay,
-        .icu-room-stack.game-active.portrait-maria .oldman-overlay {
-            opacity: 0;
-        }
-
-        .icu-room-stack.game-active.portrait-maria .child-overlay {
-            opacity: 1;
-            z-index: 3;
-        }
-
-        @media (max-width: 1024px) {
-            .container {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .container.intro-phase .game-section {
-                left: -9999px;
-            }
-
-            .icu-room-stack {
-                max-width: 400px;
-            }
-        }
-#game-container canvas {
-    border: 3px solid red;
-}
-    </style>
+    #game-container {
+      width: 400px;
+      height: 600px;
+      margin: 0 auto;
+    }
+  </style>
 </head>
+
 <body>
-<div class="container intro-phase" id="app-root">
-    <div class="game-section" id="game-container"></div>
-    <div class="image-section">
-        <div class="icu-room-stack" id="icu-stack">
-            <img class="icu-bg" src="images/Icu Room.png" alt="ICU room">
-            <img class="girl-overlay" src="images/girl.png" alt="Anna">
-            <img class="oldman-overlay" src="images/old man.png" alt="John">
-            <img class="child-overlay" src="images/child.png" alt="Maria">
-            <img class="doctor-overlay" src="images/doctor.png" alt="Doctor">
-        </div>
-    </div>
-</div>
+<div id="game-container"></div>
+
 <script type="module" src="main.js"></script>
-<script>
-    (function () {
-        var root = document.getElementById("app-root");
-        var stack = document.getElementById("icu-stack");
-        var DOCTOR_ONLY_MS = 5000;
-
-        function applyPortraitFromName(name) {
-            stack.classList.remove("portrait-anna", "portrait-john", "portrait-maria");
-            if (name === "Anna") {
-                stack.classList.add("portrait-anna");
-            } else if (name === "John") {
-                stack.classList.add("portrait-john");
-            } else if (name === "Maria") {
-                stack.classList.add("portrait-maria");
-            }
-        }
-
-        window.addEventListener("patient-focus", function (ev) {
-            if (!stack.classList.contains("game-active")) {
-                return;
-            }
-            var name = ev.detail && ev.detail.name;
-            if (name) {
-                applyPortraitFromName(name);
-            }
-        });
-
-        function startGameplayLayout() {
-            root.classList.remove("intro-phase");
-            stack.classList.add("game-active");
-            var name = document.body.dataset.currentPatient || "Anna";
-            applyPortraitFromName(name);
-        }
-
-    })();
-</script>
 </body>
 </html>

@@ -1,28 +1,25 @@
 export default class StartScene extends Phaser.Scene {
-    constructor() {
-        super("StartScene");
-    }
+  constructor() {
+    super("StartScene");
+  }
 
-    create() {
-        this.cameras.main.setBackgroundColor("#ffffff");
+  create() {
+    this.add.rectangle(200, 300, 400, 600, 0x000000);
 
-        this.add.text(80, 150, "Doctor On Duty", {
-            fontSize: "28px",
-            color: "#000"
-        });
+    this.add.text(120, 200, "ICU SIM", {
+      fontSize: "28px",
+      color: "#fff"
+    });
 
-        const startBtn = this.add.text(140, 300, "START", {
-            fontSize: "24px",
-            backgroundColor: "#00aa00",
-            color: "#ffffff",
-            padding: { x: 20, y: 10 }
-        });
+    const btn = this.add.rectangle(200, 320, 180, 50, 0x00ff00)
+      .setInteractive({ useHandCursor: true });
 
-        startBtn.setInteractive({ useHandCursor: true });
+    this.add.text(200, 320, "START", {
+      color: "#000"
+    }).setOrigin(0.5);
 
-        startBtn.on("pointerdown", () => {
-            console.log("BUTTON WORKS");
-            this.scene.start("GameScene");
-        });
-    }
+    btn.on("pointerdown", () => {
+      this.scene.start("GameScene");
+    });
+  }
 }
