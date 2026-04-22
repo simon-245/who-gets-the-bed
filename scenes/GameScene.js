@@ -1,128 +1,212 @@
 export default class GameScene extends Phaser.Scene {
-  constructor() {
-    super("GameScene");
-  }
+    constructor() {
+        super("GameScene");
+    }
 
-  preload() {
-    this.load.image("icu", "images/icu_room.png");
-    this.load.image("doctor", "images/doctor.png");
+    preload() {
+        this.load.image("icu", "images/icu_room.png");
+        this.load.image("doctor", "images/doctor.png");
 
-    this.load.image("anna", "images/child.png");
-    this.load.image("john", "images/old_man.png");
-    this.load.image("maria", "images/girl.png");
-  }
+        this.load.image("anna", "images/child.png");
+        this.load.image("john", "images/old_man.png");
+        this.load.image("maria", "images/girl.png");
+    }
 
-  create() {
-    this.beds = 2;
-    this.selected = null;
-    this.results = [];
+    create() {
+        // =====================
+        // FULLSCREEN BACKGROUND
+        // =====================
+        this.bg = this.add.image(
+            this.scale.width / 2,
+            this.scale.height / 2,
+            "icu"
+        );
 
-    // 🏥 BACKGROUND
-    const bg = this.add.image(200, 300, "icu");
-    bg.setDisplaySize(400, 600);
-    bg.setDepth(0);
+        this.bg.setDepth(0);
 
-    // 🧑‍⚕️ DOCTOR
-    const doctor = this.add.image(200, 440, "doctor");
-    doctor.setScale(0.35);
-    doctor.setDepth(5);
+        this.fitBackground();
 
-    // 📊 UI TEXT
-    this.uiText = this.add.text(20, 20, "Select patient", {
-      fontSize: "14px",
-      color: "#000",
-      backgroundColor: "#ffffff"
-    });
-    this.uiText.setDepth(20);
+        // =====================
+        // DOCTOR
+        // =====================
+        this.doctor = this.add.image(
+            this.scale.width * 0.5,
+            this.scale.height * 0.78,
+            "doctor"
+        );
 
-    // 👤 PATIENTS
-    this.patients = [
-      { name: "Anna", age: 23, survival: 0.8, sprite: "anna" },
-      { name: "John", age: 67, survival: 0.4, sprite: "john" },
-      { name: "Maria", age: 35, survival: 0.6, sprite: "maria" }
-    ];
+        this.doctor.setScale(0.35);
+        this.doctor.setDepth(10);
 
-    this.cards = [];
+        // =====================
+        // GAME STATE
+        // =====================
+        this.beds = 2;
+        this.selected = null;
+        this.results = [];
 
-    this.patients.forEach((p, i) => {
-      const x = 100 + i * 100;
-      const y = 320;
+        this.patients = [
+            { name: "Anna", age: 23, survival: 0.8, sprite: "anna" },
+            { name: "John", age: 67, survival: 0.4, sprite: "john" },
+            { name: "Maria", age: 35, survival: 0.6, sprite: "maria" }
+        ];
 
-      const card = this.add.image(x, y, p.sprite)
-        .setScale(0.25)
-        .setInteractive({ useHandCursor: true });
+        // =====================
+        // UI PANEL
+        // =====================
+        this.infoBox = this.add.rectangle(
+            20,
+            20,
+            320,
+            130,
+            0xffffff,
+            0.85
+        )
+        .setOrigin(0)
+        .setDepth(20);
 
-      card.setDepth(10);
+        this.uiText = this.add.text(35, 35, "Select patient", {
+            fontSize: "20px",
+            color: "#000"
+        }).setDepth(21);
 
-      card.on("pointerdown", () => {
-        this.selected = i;
-        this.updateUI();
-      });
+        // =====================
+        // PATIENTS
+        // =====================
+        this.cards = [];
 
-      this.cards.push(card);
-    });
+        const spacing = this.scale.width / 4;
 
-    // 🎮 BUTTONS
-    this.giveBtn = this.add.text(40, 520, "GIVE BED", {
-      backgroundColor: "#00ff00",
-      color: "#000",
-      padding: { x: 10, y: 5 }
-    }).setInteractive().setDepth(30);
+        this.patients.forEach((p, i) => {
+            const x = spacing * (i + 1);
+            const y = this.scale.height * 0.48;
 
-    this.skipBtn = this.add.text(220, 520, "SKIP", {
-      backgroundColor: "#ff0000",
-      color: "#000",
-      padding: { x: 10, y: 5 }
-    }).setInteractive().setDepth(30);
+            const card = this.add.image(x, y, p.sprite)
+                .setScale(0.22)
+                .setInteractive({ useHandCursor: true })
+                .setDepth(15);
 
-    this.giveBtn.on("pointerdown", () => this.decide(true));
-    this.skipBtn.on("pointerdown", () => this.decide(false));
-  }
+            card.on("pointerdown", () => {
+                this.selected = i;
+                this.updateUI();
+            });
 
-  updateUI() {
-    if (this.selected === null) return;
+            this.cards.push(card);
+        });
 
-    const p = this.patients[this.selected];
+        // =====================
+        // BUTTONS
+        // =====================
+        this.giveBtn = this.add.text(
+            60,
+            this.scale.height - 100,
+            "GIVE BED",
+            {
+                fontSize: "26px",
+                backgroundColor: "#4CAF50",
+                color: "#fff",
+                padding: { x: 16, y: 10 }
+            }
+        )
+        .setInteractive()
+        .setDepth(30);
 
-    this.uiText.setText(
-      `Name: ${p.name}
+        this.skipBtn = this.add.text(
+            this.scale.width - 180,
+            this.scale.height - 100,
+            "SKIP",
+            {
+                fontSize: "26px",
+                backgroundColor: "#D32F2F",
+                color: "#fff",
+                padding: { x: 16, y: 10 }
+            }
+        )
+        .setInteractive()
+        .setDepth(30);
+
+        this.giveBtn.on("pointerdown", () => this.decide(true));
+        this.skipBtn.on("pointerdown", () => this.decide(false));
+
+        this.scale.on("resize", this.resizeGame, this);
+    }
+
+    fitBackground() {
+        const scaleX = this.scale.width / this.bg.width;
+        const scaleY = this.scale.height / this.bg.height;
+
+        const scale = Math.max(scaleX, scaleY);
+
+        this.bg.setScale(scale);
+    }
+
+    resizeGame(gameSize) {
+        const width = gameSize.width;
+        const height = gameSize.height;
+
+        this.bg.setPosition(width / 2, height / 2);
+
+        const texWidth = this.bg.texture.source[0].width;
+        const texHeight = this.bg.texture.source[0].height;
+
+        const scaleX = width / texWidth;
+        const scaleY = height / texHeight;
+
+        const scale = Math.max(scaleX, scaleY);
+
+        this.bg.setScale(scale);
+
+        this.doctor.setPosition(width * 0.5, height * 0.78);
+
+        this.giveBtn.setPosition(60, height - 100);
+        this.skipBtn.setPosition(width - 180, height - 100);
+    }
+
+    updateUI() {
+        if (this.selected === null) return;
+
+        const p = this.patients[this.selected];
+
+        this.uiText.setText(
+`Patient: ${p.name}
 Age: ${p.age}
 Survival: ${Math.floor(p.survival * 100)}%
-Beds: ${this.beds}`
-    );
-  }
-
-  decide(give) {
-    if (this.selected === null) return;
-
-    const p = this.patients[this.selected];
-
-    let survived = false;
-
-    if (give && this.beds > 0) {
-      this.beds--;
-      survived = Math.random() < p.survival;
+Beds Left: ${this.beds}`
+        );
     }
 
-    this.results.push({
-      name: p.name,
-      age: p.age,
-      survived
-    });
+    decide(give) {
+        if (this.selected === null) return;
 
-    this.cards[this.selected].destroy();
-    this.patients[this.selected] = null;
-    this.selected = null;
+        const p = this.patients[this.selected];
 
-    const remaining = this.patients.filter(p => p !== null).length;
+        let survived = false;
 
-    if (remaining === 0) {
-      this.time.delayedCall(300, () => {
-        this.scene.start("ResultScene", {
-          results: this.results,
-          bedsLeft: this.beds
+        if (give && this.beds > 0) {
+            this.beds--;
+            survived = Math.random() < p.survival;
+        }
+
+        this.results.push({
+            name: p.name,
+            survived
         });
-      });
+
+        this.cards[this.selected].destroy();
+
+        this.patients[this.selected] = null;
+        this.selected = null;
+
+        this.uiText.setText("Select patient");
+
+        const remaining = this.patients.filter(p => p !== null).length;
+
+        if (remaining === 0) {
+            this.time.delayedCall(500, () => {
+                this.scene.start("ResultScene", {
+                    results: this.results
+                });
+            });
+        }
     }
-  }
 }
