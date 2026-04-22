@@ -185,6 +185,9 @@
                 max-width: 400px;
             }
         }
+#game-container canvas {
+    border: 3px solid red;
+}
     </style>
 </head>
 <body>
@@ -235,7 +238,6 @@
             applyPortraitFromName(name);
         }
 
-        window.setTimeout(startGameplayLayout, DOCTOR_ONLY_MS);
     })();
 </script>
 </body>
