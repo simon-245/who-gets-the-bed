@@ -205,6 +205,7 @@ ${patient.vitals}`
         this.giveBtn.on("pointerdown", () => this.decide(true));
         this.skipBtn.on("pointerdown", () => this.decide(false));
     }
+	}
 
     // =====================
     // BACKGROUND SCALE
