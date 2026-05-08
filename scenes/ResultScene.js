@@ -14,17 +14,13 @@ export default class ResultScene extends Phaser.Scene {
 
         this.cameras.main.fadeIn(600, 0, 0, 0);
 
-        // ── Fixed background (never scrolls)
         this.add.rectangle(W / 2, H / 2, W, H, 0x0b0f1a).setDepth(0);
         this.drawGrid(W, H);
 
-        // ── Top accent bar (fixed)
         this.add.rectangle(W / 2, 0, W, 6, 0x3b82f6).setOrigin(0.5, 0).setDepth(1);
 
-        // ── Scrollable container — everything content goes in here
         this.scrollContainer = this.add.container(0, 0).setDepth(2);
 
-        // ── Build all content
         this.drawHeader(W);
 
         const cardW = Math.min(W * 0.88, 700);
@@ -56,7 +52,6 @@ export default class ResultScene extends Phaser.Scene {
         this.drawSummary(W, cardX, cardW, summaryY);
         this.drawPlayAgainButton(W, summaryY + 130);
 
-        // ── Scroll setup
         this.contentHeight = summaryY + 230;
         this.minScrollY = 0;
         this.maxScrollY = Math.max(0, this.contentHeight - H);
@@ -65,7 +60,6 @@ export default class ResultScene extends Phaser.Scene {
         this.dragStartY = 0;
         this.dragStartScrollY = 0;
 
-        // Mouse wheel
         this.input.on("wheel", (pointer, gameObjects, deltaX, deltaY) => {
             this.scrollY = Phaser.Math.Clamp(
                 this.scrollY + deltaY * 0.8,
@@ -76,7 +70,6 @@ export default class ResultScene extends Phaser.Scene {
             this.updateScrollbar();
         });
 
-        // Touch / drag scroll
         this.input.on("pointerdown", (pointer) => {
             this.isDragging = true;
             this.dragStartY = pointer.y;
@@ -99,14 +92,12 @@ export default class ResultScene extends Phaser.Scene {
             this.isDragging = false;
         });
 
-        // ── Scrollbar (fixed, not in container)
         this.scrollbarTrackH = H - 60;
         this.scrollbarTrack = this.add.graphics().setDepth(99);
         this.scrollbarThumb = this.add.graphics().setDepth(100);
         this.drawScrollbarTrack(W, H);
         this.updateScrollbar();
 
-        // ── Scroll hint arrow (fades out after 2s)
         if (this.maxScrollY > 0) {
             const hint = this.add.text(W / 2, H - 28, "▼  scroll to see more  ▼", {
                 fontSize: "12px",
@@ -124,7 +115,6 @@ export default class ResultScene extends Phaser.Scene {
                 onComplete: () => hint.destroy()
             });
 
-            // Bounce animation for hint
             this.tweens.add({
                 targets: hint,
                 y: H - 22,
@@ -176,7 +166,6 @@ export default class ResultScene extends Phaser.Scene {
     drawHeader(W) {
         const add = (obj) => { this.scrollContainer.add(obj); return obj; };
 
-        // ECG decorative line
         const ecg = this.add.graphics();
         ecg.lineStyle(2, 0x3b82f6, 0.2);
         ecg.beginPath();
@@ -200,7 +189,6 @@ export default class ResultScene extends Phaser.Scene {
             fontFamily: "Georgia, serif"
         }).setOrigin(0.5));
 
-        // Thin divider under header
         const divider = this.add.graphics();
         divider.lineStyle(1, 0x1d4ed8, 0.4);
         divider.moveTo(W / 2 - 200, 90);
@@ -261,7 +249,6 @@ export default class ResultScene extends Phaser.Scene {
             fontSize: "16px", color: "#f0f4ff", fontStyle: "bold"
         }));
 
-        // Badge (top right)
         const badgeG = this.add.graphics();
         const bpad = 10;
         const bW = badgeText.length * 7.2 + bpad * 2;
@@ -287,7 +274,6 @@ export default class ResultScene extends Phaser.Scene {
             wordWrap: { width: w - 200 }
         }));
 
-        // Divider
         const div = this.add.graphics();
         div.lineStyle(1, accentColor, 0.15);
         div.moveTo(x + 14, y + 60);
@@ -328,7 +314,6 @@ export default class ResultScene extends Phaser.Scene {
                 barFill.fillRoundedRect(barX, barY + 14, Math.max(fillW, 4), 7, 3);
                 add(barFill);
 
-                // Pip dividers
                 for (let p = 1; p < 5; p++) {
                     const pip = this.add.graphics();
                     pip.lineStyle(1.5, 0x0b0f1a, 0.6);
@@ -391,7 +376,6 @@ export default class ResultScene extends Phaser.Scene {
             }).setOrigin(0.5));
         });
 
-        // Verdict text
         const verdict = rate >= 60 ? "Good shift — most patients survived."
             : rate >= 40 ? "Difficult shift — several patients were lost."
             : "Critical outcome — review your decisions carefully.";
@@ -446,7 +430,6 @@ export default class ResultScene extends Phaser.Scene {
         btnTxt.on("pointerout",    onOut);
         btnTxt.on("pointerdown",   onDown);
 
-        // Gentle pulse
         this.tweens.add({
             targets: btnTxt,
             alpha: 0.75,

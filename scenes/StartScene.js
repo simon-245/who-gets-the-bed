@@ -26,7 +26,6 @@ export default class StartScene extends Phaser.Scene {
       this.scene.start("StoryScene");
     });
 
-    // Add shortcut image on the right side
     this.add.image(this.scale.width - 40, 40, "short")
       .setOrigin(1, 0)
       .setDepth(50)

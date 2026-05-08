@@ -8,7 +8,6 @@ export default class StoryScene extends Phaser.Scene {
     this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x000000)
       .setDepth(0);
 
-    // Story text in white with higher depth
     this.add.text(
       this.scale.width / 2,
       this.scale.height / 2,
@@ -22,7 +21,6 @@ export default class StoryScene extends Phaser.Scene {
       }
     ).setOrigin(0.5).setDepth(10);
 
-    // Auto transition to GameScene after 10 seconds
     this.time.delayedCall(10000, () => {
       this.scene.start("GameScene");
     });
