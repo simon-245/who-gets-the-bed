@@ -353,15 +353,6 @@ export default class GameScene extends Phaser.Scene {
                             { text: "Restrict all fluids", correct: false }
                         ]
                     },
-                    {
-                        prompt: "If the correct treatment is given, what is the expected outcome?",
-                        choices: [
-                            { text: "Fever resolves and child improves", correct: true },
-                            { text: "Fever worsens and complications develop", correct: false },
-                            { text: "Child remains lethargic indefinitely", correct: false },
-                            { text: "No change in symptoms", correct: false }
-                        ]
-                    }
                 ]
             },
             {
@@ -628,7 +619,7 @@ ${patient.vitals}`
                 this.briefingText.setText(patient.briefing);
 
                 // Start timer countdown
-                let timeRemaining = 20;
+                let timeRemaining = 30;
                 this.timerText.setText(timeRemaining);
 
                 // Update timer every second
@@ -645,7 +636,7 @@ ${patient.vitals}`
                 }, 1000);
 
                 // auto close and begin health drain if ignored
-                this.diagnosisTimer = this.time.delayedCall(20000, () => {
+                this.diagnosisTimer = this.time.delayedCall(30000, () => {
                     this.hideReportPanel();
                     if (this.selected !== null) {
                         this.startHealthDrain(this.selected);
@@ -746,7 +737,7 @@ ${patient.vitals}`
                 this.briefingText.setText(patient.briefing);
 
                 // Start timer countdown
-                let timeRemaining = 20;
+                let timeRemaining = 30;
                 this.timerText.setText(timeRemaining);
 
                 // Update timer every second
@@ -763,7 +754,7 @@ ${patient.vitals}`
                 }, 1000);
 
                 // auto close and begin health drain if ignored
-                this.diagnosisTimer = this.time.delayedCall(20000, () => {
+                this.diagnosisTimer = this.time.delayedCall(30000, () => {
                     this.hideReportPanel();
                     if (this.selected !== null) {
                         this.startHealthDrain(this.selected);
@@ -1100,20 +1091,24 @@ Beds occupied: ${this.occupiedBeds}/${this.totalBeds}`
         }
 
         const answer = question.choices[this.selectedChoice];
+        const { choiceBg } = this.quizChoiceButtons[this.selectedChoice];
+        
         if (answer.correct) {
             this.currentQuiz.correctCount++;
             this.quizFeedbackText.setText("Correct! Move to the next question.");
+            choiceBg.setFillStyle(0x4caf50); // Green for correct
         } else {
             this.quizFeedbackText.setText("Incorrect. Keep going and try to get at least 3 correct.");
+            choiceBg.setFillStyle(0xf44336); // Red for wrong
         }
 
         this.currentQuiz.questionIndex++;
         this.selectedChoice = null;
 
         if (this.currentQuiz.questionIndex >= patient.questions.length) {
-            this.finishQuiz();
+            this.time.delayedCall(1200, () => this.finishQuiz());
         } else {
-            this.time.delayedCall(800, () => this.renderQuizQuestion());
+            this.time.delayedCall(1200, () => this.renderQuizQuestion());
         }
     }
 
@@ -1138,15 +1133,15 @@ if (score < 3) patient.wasWrongChoice = true;
             // Health declines by 5% (same penalty as failed prescription)
             patient.health = Math.max(0, patient.health * 0.95);
             this.updateHealthDisplay(this.currentQuiz.patientIndex);
-            this.uiText.setText(`${patient.name} answered ${score}/5. Health declines - prescription failed.`);
+            this.uiText.setText(`${patient.name} answered ${score}/5. Health declines - your choices are not according to patient prescription.`);
             
             if (patient.health <= 0) {
                 this.removePatient(this.currentQuiz.patientIndex, false);
             } else {
                 // Same as SKIP button - hide report and start health drain
-                p.wasSkipped = true;
-this.hideReportPanel();
-this.startHealthDrain(this.selected, 5);
+                patient.wasSkipped = true;
+                this.hideReportPanel();
+                this.startHealthDrain(this.currentQuiz.patientIndex, 5);
             }
         }
 
