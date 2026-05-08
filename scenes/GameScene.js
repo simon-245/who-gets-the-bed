@@ -467,13 +467,13 @@ this.uiText.setVisible(true);
         this.briefingBackground = this.add.rectangle(
             this.scale.width - 20,
             this.scale.height / 3.5,
-            380,
-            480,
+            340,
+            460,
             0x1a3a52
         );
 
         this.briefingBackground.setOrigin(1, 0.5);
-        this.briefingBackground.setDepth(40);
+        this.briefingBackground.setDepth(55);
         this.briefingBackground.setVisible(false);
 
         // =====================
@@ -487,13 +487,13 @@ this.uiText.setVisible(true);
                 fontSize: "16px",
                 color: "#ffffff",
                 align: "left",
-                wordWrap: { width: 320 },
+                wordWrap: { width: 260 },
                 padding: { x: 15, y: 15 }
             }
         );
 
         this.briefingText.setOrigin(1, 0);
-        this.briefingText.setDepth(41);
+        this.briefingText.setDepth(56);
         this.briefingText.setVisible(false);
 
         // =====================
@@ -507,13 +507,13 @@ this.uiText.setVisible(true);
                 fontSize: "13px",
                 color: "#ffeb3b",
                 align: "left",
-                wordWrap: { width: 320 },
+                wordWrap: { width: 220 },
                 padding: { x: 15, y: 10 }
             }
         );
 
         this.medicalReference.setOrigin(1, 0);
-        this.medicalReference.setDepth(41);
+        this.medicalReference.setDepth(56);
         this.medicalReference.setVisible(false);
 
         // =====================
@@ -1028,6 +1028,13 @@ Beds occupied: ${this.occupiedBeds}/${this.totalBeds}`
     showQuizPanel() {
         if (!this.quizPanel) return;
         this.hideReportPanel();
+        const patient = this.patients[this.currentQuiz.patientIndex];
+        if (patient) {
+            this.briefingText.setText(patient.briefing);
+            this.briefingBackground.setVisible(true);
+            this.briefingText.setVisible(true);
+            this.medicalReference.setVisible(true);
+        }
         this.quizPanel.setVisible(true);
         this.quizQuestionText.setVisible(true);
         this.quizSubmitText.setVisible(true);
@@ -1051,6 +1058,9 @@ Beds occupied: ${this.occupiedBeds}/${this.totalBeds}`
             choiceBg.setVisible(false);
             choiceText.setVisible(false);
         });
+        this.briefingBackground.setVisible(false);
+        this.briefingText.setVisible(false);
+        this.medicalReference.setVisible(false);
         this.selectedChoice = null;
         // Don't clear currentQuiz here - let finishQuiz handle it
     }
