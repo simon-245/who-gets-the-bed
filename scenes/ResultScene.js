@@ -228,9 +228,6 @@ export default class ResultScene extends Phaser.Scene {
         } else if (r.wasSkipped) {
             accentColor = 0xf59e0b; bgColor = 0x1c1400;
             badgeText = "IGNORED"; outcomeTextColor = "#fcd34d";
-        } else if (r.wasWrongChoice) {
-            accentColor = 0xef4444; bgColor = 0x1c0000;
-            badgeText = "WRONG TREATMENT"; outcomeTextColor = "#fca5a5";
         } else {
             accentColor = 0x6b7280; bgColor = 0x111318;
             badgeText = "DIED WAITING"; outcomeTextColor = "#d1d5db";
@@ -302,44 +299,6 @@ export default class ResultScene extends Phaser.Scene {
             wordWrap: { width: w - 28 },
             lineSpacing: 3
         }));
-
-        // Quiz score bar
-        if (r.quizScore !== null && r.quizScore !== undefined) {
-            const barX = x + w - 115;
-            const barY = y + 36;
-            const barMaxW = 95;
-            const fillW = (r.quizScore / 5) * barMaxW;
-
-            add(this.add.text(barX, barY - 1, `Quiz  ${r.quizScore} / 5`, {
-                fontSize: "10px",
-                color: "#6b7280",
-                fontFamily: "monospace"
-            }));
-
-            const barBg = this.add.graphics();
-            barBg.fillStyle(0x1f2937, 1);
-            barBg.fillRoundedRect(barX, barY + 14, barMaxW, 7, 3);
-            add(barBg);
-
-            if (fillW > 0) {
-                const fillColor = r.quizScore >= 3 ? 0x22c55e : r.quizScore >= 2 ? 0xf59e0b : 0xef4444;
-                const barFill = this.add.graphics();
-                barFill.fillStyle(fillColor, 1);
-                barFill.fillRoundedRect(barX, barY + 14, Math.max(fillW, 4), 7, 3);
-                add(barFill);
-
-                // Pip dividers
-                for (let p = 1; p < 5; p++) {
-                    const pip = this.add.graphics();
-                    pip.lineStyle(1.5, 0x0b0f1a, 0.6);
-                    const px = barX + (p / 5) * barMaxW;
-                    pip.moveTo(px, barY + 14);
-                    pip.lineTo(px, barY + 21);
-                    pip.strokePath();
-                    add(pip);
-                }
-            }
-        }
 
         return objects;
     }

@@ -37,13 +37,13 @@ export default class GameScene extends Phaser.Scene {
         // DOCTOR
         // =====================
         this.doctor = this.add.image(
-            this.scale.width * 0.5,
+            this.scale.width * 0.86,
             this.scale.height * 0.78,
             "doctor"
         );
 
         this.doctor.setScale(0.35);
-        this.doctor.setDepth(10);
+        this.doctor.setDepth(20);
 
         // =====================
         // STATE
@@ -52,8 +52,6 @@ export default class GameScene extends Phaser.Scene {
         this.occupiedBeds = 0;
         this.selected = null;
         this.results = [];
-        this.currentQuiz = null;
-        this.selectedChoice = null;
 
         this.patients = [
             {
@@ -61,8 +59,8 @@ export default class GameScene extends Phaser.Scene {
                 age: 23,
                 survival: 0.8,
                 sprite: "anna",
-                health: 80,
-                status: "waiting",
+                health: 20,
+                status: "queued",
                 mainSlot: 0,
                 disease: "Guillain Barré Syndrome (Zika related)",
                 outcomeReason: "",
@@ -123,7 +121,7 @@ export default class GameScene extends Phaser.Scene {
                 survival: 0.4,
                 sprite: "john",
                 health: 45,
-                status: "waiting",
+                status: "queued",
                 mainSlot: 1,
                 disease: "Severe Guillain Barré Syndrome (Zika related)",
                 symptoms: "• Rapidly progressing paralysis\n• Severe respiratory failure\n• Requires intubation\n• Complete loss of leg mobility\n• Weakness in upper extremities\n• CSF protein elevated\n• EMG shows demyelination",
@@ -182,8 +180,8 @@ export default class GameScene extends Phaser.Scene {
                 age: 35,
                 survival: 0.6,
                 sprite: "maria",
-                health: 60,
-                status: "waiting",
+                health: 25,
+                status: "queued",
                 mainSlot: 2,
                 disease: "Guillain Barré Syndrome with Autonomic Dysfunction (Zika related)",
                 symptoms: "• Moderate ascending paralysis\n• Facial weakness\n• Dysarthria\n• Autonomic instability\n• Fluctuating BP and HR\n• History of Zika infection 3 weeks ago\n• Respiratory function declining",
@@ -243,7 +241,7 @@ export default class GameScene extends Phaser.Scene {
                 survival: 0.3,
                 sprite: "old_woman",
                 health: 30,
-                status: "atDoor",
+                status: "queued",
                 disease: "Severe Guillain-Barré Syndrome with Respiratory Failure",
                 symptoms: "• Severe muscle weakness and paralysis\n• Complete respiratory failure requiring ventilation\n• Advanced age with comorbidities\n• Rapid deterioration\n• History of recent infection\n• Elevated CSF protein levels",
                 briefing: "This elderly patient has severe GBS with complete respiratory paralysis. Age significantly reduces survival chances. Requires immediate intubation and ventilatory support. Immunotherapy may be less effective due to age. High risk of complications.",
@@ -301,8 +299,8 @@ export default class GameScene extends Phaser.Scene {
                 age: 7,
                 survival: 0.5,
                 sprite: "fever_child",
-                health: 55,
-                status: "atDoor",
+                health: 10,
+                status: "queued",
                 disease: "High fever with weakness",
                 symptoms: "• High fever\n• Chills\n• Lethargy\n• Poor appetite\n• Generalized weakness",
                 briefing: "This child is waiting at the door with a high fever and signs of dehydration. Prompt evaluation and supportive care are needed.",
@@ -360,8 +358,8 @@ export default class GameScene extends Phaser.Scene {
                 age: 45,
                 survival: 0.5,
                 sprite: "woman",
-                health: 50,
-                status: "atDoor",
+                health: 26,
+                status: "queued",
                 disease: "Guillain-Barré Syndrome with Mild Respiratory Involvement",
                 symptoms: "• Progressive weakness in legs and arms\n• Mild difficulty breathing\n• Facial weakness\n• Reduced reflexes\n• Recent viral illness\n• CSF analysis pending",
                 briefing: "Moderate GBS with early respiratory involvement. Requires close monitoring for respiratory deterioration. Standard immunotherapy should be initiated promptly. Good potential for recovery with early intervention.",
@@ -420,6 +418,7 @@ export default class GameScene extends Phaser.Scene {
         this.healthDisplays = new Array(this.patients.length);
         this.healthDrainEvents = new Array(this.patients.length);
         this.treatmentEvents = new Array(this.patients.length);
+        this.patientDecisionEvents = new Array(this.patients.length);
 
         // =====================
         // UI
@@ -521,12 +520,12 @@ this.uiText.setVisible(true);
         // =====================
         this.timerText = this.add.text(
             this.scale.width / 2,
-            50,
-            "20",
+            this.scale.height / 2 - 300,
+            "Take your time",
             {
-                fontSize: "48px",
+                fontSize: "30px",
                 color: "#fff",
-                backgroundColor: "#ff0000",
+                backgroundColor: "#1f4f8b",
                 padding: { x: 15, y: 10 }
             }
         );
@@ -540,257 +539,48 @@ this.uiText.setVisible(true);
         // =====================
         this.cards = new Array(this.patients.length);
 
-        const waitingPatients = this.patients.filter(p => p.status === "waiting");
-        const doorPatients = this.patients.filter(p => p.status === "atDoor");
+        const doorX = 80;
+        const doorY = this.scale.height * 0.3;
 
-        // Place waiting patients in the center
-        const spacing = this.scale.width / 4;
-
-        waitingPatients.forEach((p, idx) => {
-            const i = this.patients.indexOf(p);
-            const x = spacing * (idx + 1);
-            const curtain = this.add.image(x, this.scale.height * 0.44, "curtain")
+        this.patients.forEach((patient, i) => {
+            const curtain = this.add.image(doorX, this.scale.height * 0.44, "curtain")
                 .setOrigin(0.5, 0)
                 .setScale(0.45)
                 .setDepth(12)
                 .setVisible(false);
-
             this.curtains[i] = curtain;
 
-            const card = this.add.image(
-                x,
-                this.scale.height * 0.48,
-                p.sprite
-            )
-                .setScale(0.22)
-                .setInteractive({ useHandCursor: true })
-                .setDepth(15);
-
-            card.on("pointerdown", () => {
-
-                if (this.selected !== null && this.selected !== i) {
-                    this.startHealthDrain(this.selected);
-                }
-
-                this.selected = i;
-                this.updateUI();
-
-                const patient = this.patients[i];
-
-                // reset old
-                this.diagnosisImage.setVisible(false);
-                this.symptomText.setVisible(false);
-                this.briefingBackground.setVisible(false);
-                this.briefingText.setVisible(false);
-                this.medicalReference.setVisible(false);
-                this.timerText.setVisible(false);
-                this.giveBtn.setVisible(false);
-                this.skipBtn.setVisible(false);
-                this.hideQuizPanel();
-
-                if (this.diagnosisTimer) {
-                    this.diagnosisTimer.remove(false);
-                }
-
-                if (this.timerInterval) {
-                    clearInterval(this.timerInterval);
-                }
-
-                // show new
-                this.diagnosisImage.setVisible(true);
-                this.symptomText.setVisible(true);
-                this.briefingBackground.setVisible(true);
-                this.briefingText.setVisible(true);
-                this.medicalReference.setVisible(true);
-                this.timerText.setVisible(true);
-                this.giveBtn.setVisible(true);
-                this.skipBtn.setVisible(true);
-
-                this.symptomText.setText(
-`${patient.name}
-
-${patient.disease}
-
-${patient.symptoms}
-
-${patient.vitals}`
-                );
-
-                this.briefingText.setText(patient.briefing);
-
-                // Start timer countdown
-                let timeRemaining = 30;
-                this.timerText.setText(timeRemaining);
-
-                // Update timer every second
-                if (this.timerInterval) {
-                    clearInterval(this.timerInterval);
-                }
-
-                this.timerInterval = setInterval(() => {
-                    timeRemaining--;
-                    this.timerText.setText(timeRemaining);
-                    if (timeRemaining <= 0) {
-                        clearInterval(this.timerInterval);
-                    }
-                }, 1000);
-
-                // auto close and begin health drain if ignored
-                this.diagnosisTimer = this.time.delayedCall(30000, () => {
-                    this.hideReportPanel();
-                    if (this.selected !== null) {
-                        this.startHealthDrain(this.selected);
-                    }
-                });
-            });
-
-            this.cards[i] = card;
-        });
-
-        // Place door patients vertically stacked on the left side
-        const doorSpacing = 80; // Vertical spacing between patients
-        const doorX = 80; // Fixed X position on the left side
-        const doorY = this.scale.height * 0.3; // Starting Y position
-        doorPatients.forEach((p, idx) => {
-            const i = this.patients.indexOf(p);
-            const x = doorX;
-            const y = doorY + idx * doorSpacing; // Stack vertically
-
-            const curtain = this.add.image(x, this.scale.height * 0.44, "curtain")
-                .setOrigin(0.5, 0)
-                .setScale(0.45)
-                .setDepth(12)
-                .setVisible(false);
-
-            this.curtains[i] = curtain;
-
-            const card = this.add.image(
-                x,
-                y,
-                p.sprite
-            )
+            const card = this.add.image(doorX, doorY, patient.sprite)
                 .setScale(0.28)
                 .setDepth(15)
+                .setVisible(false)
                 .setInteractive({ useHandCursor: true });
 
             card.on("pointerdown", () => {
-                if (this.selected !== null && this.selected !== i) {
-                    this.startHealthDrain(this.selected);
-                }
-
-                const patient = this.patients[i];
-                if (patient && patient.status === "atDoor") {
-                    const freeSlot = this.findFreeMainSlot();
-                    if (freeSlot !== null) {
-                        patient.status = "waiting";
-                        patient.mainSlot = freeSlot;
-                        this.updatePatientPosition(i);
-                        this.refreshWaitingPositions();
-                        this.refreshDoorPositions();
-                        this.startHealthDrain(i);
-                        this.uiText.setText(`${patient.name} has moved into a free bed slot and is waiting for treatment.`);
-                    }
-                }
-
+                const current = this.patients[i];
+                if (!current || current.status !== "atDoor") return;
                 this.selected = i;
                 this.updateUI();
-
-                // reset old
-                this.diagnosisImage.setVisible(false);
-                this.symptomText.setVisible(false);
-                this.briefingBackground.setVisible(false);
-                this.briefingText.setVisible(false);
-                this.medicalReference.setVisible(false);
-                this.timerText.setVisible(false);
-                this.giveBtn.setVisible(false);
-                this.skipBtn.setVisible(false);
-                this.hideQuizPanel();
-
-                if (this.diagnosisTimer) {
-                    this.diagnosisTimer.remove(false);
-                }
-
-                if (this.timerInterval) {
-                    clearInterval(this.timerInterval);
-                }
-
-                // show new
-                this.diagnosisImage.setVisible(true);
-                this.symptomText.setVisible(true);
-                this.briefingBackground.setVisible(true);
-                this.briefingText.setVisible(true);
-                this.medicalReference.setVisible(true);
-                this.timerText.setVisible(true);
-                this.giveBtn.setVisible(true);
-                this.skipBtn.setVisible(true);
-
-                this.symptomText.setText(
-`${patient.name}
-
-${patient.disease}
-
-${patient.symptoms}
-
-${patient.vitals}`
-                );
-
-                this.briefingText.setText(patient.briefing);
-
-                // Start timer countdown
-                let timeRemaining = 30;
-                this.timerText.setText(timeRemaining);
-
-                // Update timer every second
-                if (this.timerInterval) {
-                    clearInterval(this.timerInterval);
-                }
-
-                this.timerInterval = setInterval(() => {
-                    timeRemaining--;
-                    this.timerText.setText(timeRemaining);
-                    if (timeRemaining <= 0) {
-                        clearInterval(this.timerInterval);
-                    }
-                }, 1000);
-
-                // auto close and begin health drain if ignored
-                this.diagnosisTimer = this.time.delayedCall(30000, () => {
-                    this.hideReportPanel();
-                    if (this.selected !== null) {
-                        this.startHealthDrain(this.selected);
-                    }
-                });
+                this.showPatientReport(i);
             });
 
             this.cards[i] = card;
-        });
 
-        this.patients.forEach((patient, i) => {
-            let x, y;
-            if (patient.status === "waiting") {
-                const waitingIndex = waitingPatients.indexOf(patient);
-                x = spacing * (waitingIndex + 1);
-                y = this.scale.height * 0.66;
-            } else if (patient.status === "atDoor") {
-                const doorIndex = doorPatients.indexOf(patient);
-                x = doorX;
-                y = doorY + doorIndex * doorSpacing; // Stack vertically
-            }
-
-            const bg = this.add.rectangle(x - 60, y, 140, 18, 0x222222)
+            const bg = this.add.rectangle(doorX - 60, doorY, 140, 18, 0x222222)
                 .setOrigin(0, 0.5)
-                .setDepth(16);
-
-            const fill = this.add.rectangle(x - 60, y, 140, 18, 0x4caf50)
+                .setDepth(16)
+                .setVisible(false);
+            const fill = this.add.rectangle(doorX - 60, doorY, 140, 18, 0x4caf50)
                 .setOrigin(0, 0.5)
-                .setDepth(17);
-
-            const label = this.add.text(x, y, `Health: ${patient.health}%`, {
+                .setDepth(17)
+                .setVisible(false);
+            const label = this.add.text(doorX, doorY, `Health: ${patient.health}%`, {
                 fontSize: "14px",
                 color: "#ffffff"
             })
             .setOrigin(0.5)
-            .setDepth(18);
+            .setDepth(18)
+            .setVisible(false);
 
             this.healthDisplays[i] = { bg, fill, label };
             this.updateHealthDisplay(i);
@@ -799,7 +589,7 @@ ${patient.vitals}`
         // =====================
         // BUTTONS
         // =====================
-        this.giveBtn = this.add.text(60, this.scale.height - 100, "PRESCRIBE MEDICINE", {
+        this.giveBtn = this.add.text(60, this.scale.height - 100, "GIVE BED", {
             fontSize: "24px",
             backgroundColor: "#4CAF50",
             color: "#fff",
@@ -819,10 +609,10 @@ ${patient.vitals}`
         .setDepth(50);
         this.skipBtn.setVisible(false);
 
-        this.giveBtn.on("pointerdown", () => this.openQuiz(this.selected));
+        this.giveBtn.on("pointerdown", () => this.decide(true));
         this.skipBtn.on("pointerdown", () => this.decide(false));
 
-        this.createQuizUI();
+        this.scheduleNextPatient(1000);
     }
 
     // =====================
@@ -863,9 +653,81 @@ Beds occupied: ${this.occupiedBeds}/${this.totalBeds}`
         );
     }
 
-    checkEnableDoorPatients() {
-        // Door patients remain at the door until the player clicks them.
-        // Do not automatically move them into freed patient slots.
+    showPatientReport(index) {
+        const patient = this.patients[index];
+        if (!patient) return;
+
+        this.hideReportPanel();
+        this.diagnosisImage.setVisible(true);
+        this.symptomText.setVisible(true);
+        this.briefingBackground.setVisible(true);
+        this.briefingText.setVisible(true);
+        this.medicalReference.setVisible(true);
+        this.timerText.setVisible(true);
+        this.giveBtn.setVisible(true);
+        this.skipBtn.setVisible(true);
+
+        this.symptomText.setText(
+`${patient.name}
+
+${patient.disease}
+
+${patient.symptoms}
+
+${patient.vitals}`
+        );
+        this.briefingText.setText(patient.briefing);
+        this.timerText.setText("Take your time");
+    }
+
+    scheduleNextPatient(delayMs = 10000) {
+        if (this.nextPatientEvent) {
+            this.nextPatientEvent.remove(false);
+        }
+        const hasQueuedPatient = this.patients.some(p => p && p.status === "queued");
+        if (!hasQueuedPatient) return;
+        this.nextPatientEvent = this.time.delayedCall(delayMs, () => this.spawnNextPatient());
+    }
+
+    spawnNextPatient() {
+        const nextIndex = this.patients.findIndex(p => p && p.status === "queued");
+        if (nextIndex === -1) {
+            this.checkForEnd();
+            return;
+        }
+
+        const patient = this.patients[nextIndex];
+        patient.status = "atDoor";
+        this.selected = null;
+        this.updateUI();
+
+        const card = this.cards[nextIndex];
+        if (card) {
+            card.setPosition(80, this.scale.height * 0.3);
+            card.setVisible(true);
+        }
+
+        const display = this.healthDisplays[nextIndex];
+        if (display) {
+            display.bg.setVisible(true);
+            display.fill.setVisible(true);
+            display.label.setVisible(true);
+        }
+        this.updateHealthDisplay(nextIndex);
+        this.refreshDoorPositions();
+
+        if (this.patientDecisionEvents[nextIndex]) {
+            this.patientDecisionEvents[nextIndex].remove(false);
+            this.patientDecisionEvents[nextIndex] = null;
+        }
+        this.patientDecisionEvents[nextIndex] = this.time.delayedCall(30000, () => {
+            const current = this.patients[nextIndex];
+            if (!current || current.status !== "atDoor") return;
+            current.wasSkipped = true;
+            this.removePatient(nextIndex, false, 0);
+        });
+
+        this.scheduleNextPatient(10000);
     }
 
     startHealthDrain(index, drainRate = 5) {
@@ -920,7 +782,7 @@ Beds occupied: ${this.occupiedBeds}/${this.totalBeds}`
                     return;
                 }
 
-                current.health = Math.min(100, current.health + 5);
+                current.health = Math.min(100, current.health + 1);
                 this.updateHealthDisplay(index);
                 this.updateUI();
 
@@ -944,225 +806,18 @@ Beds occupied: ${this.occupiedBeds}/${this.totalBeds}`
         display.label.setText(`Health: ${Math.round(percent)}%`);
     }
 
-    createQuizUI() {
-        const panelWidth = 680;
-        const panelHeight = 360;
-        const panelX = this.scale.width / 2;
-        const panelY = this.scale.height / 2;
-
-        this.quizPanel = this.add.rectangle(panelX, panelY, panelWidth, panelHeight, 0xf7f7f7, 0.96)
-            .setStrokeStyle(3, 0x1f1f1f)
-            .setDepth(45)
-            .setVisible(false);
-
-        this.quizQuestionText = this.add.text(panelX - panelWidth / 2 + 30, panelY - panelHeight / 2 + 30, "", {
-            fontSize: "20px",
-            color: "#000",
-            wordWrap: { width: panelWidth - 60 }
-        }).setDepth(46).setVisible(false);
-
-        this.quizChoiceButtons = [];
-        for (let i = 0; i < 4; i++) {
-            const choiceBg = this.add.rectangle(panelX - panelWidth / 2 + 30, panelY - panelHeight / 2 + 100 + i * 60, panelWidth - 60, 45, 0xffffff)
-                .setOrigin(0, 0)
-                .setStrokeStyle(2, 0x333333)
-                .setDepth(46)
-                .setInteractive({ useHandCursor: true })
-                .setVisible(false);
-
-            const choiceText = this.add.text(choiceBg.x + 10, choiceBg.y + 12, "", {
-                fontSize: "18px",
-                color: "#000",
-                wordWrap: { width: panelWidth - 100 }
-            }).setDepth(47).setVisible(false);
-
-            choiceBg.on("pointerdown", () => this.selectQuizChoice(i));
-            this.quizChoiceButtons.push({ choiceBg, choiceText });
-        }
-
-        this.quizSubmitText = this.add.text(panelX, panelY + panelHeight / 2 + 40, "SUBMIT ANSWER", {
-            fontSize: "22px",
-            color: "#fff",
-            backgroundColor: "#4caf50",
-            padding: { x: 12, y: 8 }
-        }).setOrigin(0.5)
-            .setDepth(47)
-            .setInteractive({ useHandCursor: true })
-            .setVisible(false)
-            .on("pointerdown", () => this.submitQuizAnswer());
-
-        this.quizFeedbackText = this.add.text(panelX, panelY + panelHeight / 2 + 90, "", {
-            fontSize: "18px",
-            color: "#000",
-            align: "center",
-            wordWrap: { width: panelWidth - 80 }
-        }).setOrigin(0.5).setDepth(46).setVisible(false);
-    }
-
-    openQuiz(index) {
-        if (index === null) return;
-        const patient = this.patients[index];
-        if (!patient || patient.status !== "waiting") return;
-        if (this.occupiedBeds >= this.totalBeds) {
-            this.uiText.setText(`No beds available — ${this.occupiedBeds}/${this.totalBeds} occupied`);
-            return;
-        }
-        if (!patient.questions || patient.questions.length === 0) return;
-
-        // Stop health drain while quiz is active
-        if (this.healthDrainEvents[index]) {
-            this.healthDrainEvents[index].remove(false);
-            this.healthDrainEvents[index] = null;
-        }
-
-        this.currentQuiz = {
-            patientIndex: index,
-            questionIndex: 0,
-            correctCount: 0
-        };
-        this.selectedChoice = null;
-        this.showQuizPanel();
-        this.renderQuizQuestion();
-    }
-
-    showQuizPanel() {
-        if (!this.quizPanel) return;
-        this.hideReportPanel();
-        const patient = this.patients[this.currentQuiz.patientIndex];
-        if (patient) {
-            this.briefingText.setText(patient.briefing);
-            this.briefingBackground.setVisible(true);
-            this.briefingText.setVisible(true);
-            this.medicalReference.setVisible(true);
-        }
-        this.quizPanel.setVisible(true);
-        this.quizQuestionText.setVisible(true);
-        this.quizSubmitText.setVisible(true);
-        this.quizFeedbackText.setVisible(true);
-        this.quizChoiceButtons.forEach(({ choiceBg, choiceText }) => {
-            choiceBg.setVisible(true);
-            choiceText.setVisible(true);
-            choiceBg.setFillStyle(0xffffff);
-        });
-        this.giveBtn.setVisible(false);
-        this.skipBtn.setVisible(false);
-    }
-
-    hideQuizPanel() {
-        if (!this.quizPanel) return;
-        this.quizPanel.setVisible(false);
-        this.quizQuestionText.setVisible(false);
-        this.quizSubmitText.setVisible(false);
-        this.quizFeedbackText.setVisible(false);
-        this.quizChoiceButtons.forEach(({ choiceBg, choiceText }) => {
-            choiceBg.setVisible(false);
-            choiceText.setVisible(false);
-        });
-        this.briefingBackground.setVisible(false);
-        this.briefingText.setVisible(false);
-        this.medicalReference.setVisible(false);
-        this.selectedChoice = null;
-        // Don't clear currentQuiz here - let finishQuiz handle it
-    }
-
-    renderQuizQuestion() {
-        if (!this.currentQuiz) return;
-        const patient = this.patients[this.currentQuiz.patientIndex];
-        const question = patient.questions[this.currentQuiz.questionIndex];
-        if (!question) return;
-
-        this.quizQuestionText.setText(`Question ${this.currentQuiz.questionIndex + 1}/5:\n${question.prompt}`);
-        this.quizFeedbackText.setText("Select the correct medicine decision and submit.");
-        this.selectedChoice = null;
-
-        question.choices.forEach((choice, idx) => {
-            const { choiceBg, choiceText } = this.quizChoiceButtons[idx];
-            choiceText.setText(choice.text);
-            choiceBg.setFillStyle(0xffffff);
-            choiceBg.setStrokeStyle(2, 0x333333);
-        });
-    }
-
-    selectQuizChoice(idx) {
-        if (!this.currentQuiz) return;
-        this.selectedChoice = idx;
-        this.quizChoiceButtons.forEach(({ choiceBg }, choiceIdx) => {
-            choiceBg.setFillStyle(choiceIdx === idx ? 0xe0f7fa : 0xffffff);
-        });
-    }
-
-    submitQuizAnswer() {
-        if (!this.currentQuiz) return;
-        const patient = this.patients[this.currentQuiz.patientIndex];
-        const question = patient.questions[this.currentQuiz.questionIndex];
-        if (this.selectedChoice === null) {
-            this.quizFeedbackText.setText("Please choose an answer before submitting.");
-            return;
-        }
-
-        const answer = question.choices[this.selectedChoice];
-        const { choiceBg } = this.quizChoiceButtons[this.selectedChoice];
-        
-        if (answer.correct) {
-            this.currentQuiz.correctCount++;
-            this.quizFeedbackText.setText("Correct! Move to the next question.");
-            choiceBg.setFillStyle(0x4caf50); // Green for correct
-        } else {
-            this.quizFeedbackText.setText("Incorrect. Keep going and try to get at least 3 correct.");
-            choiceBg.setFillStyle(0xf44336); // Red for wrong
-        }
-
-        this.currentQuiz.questionIndex++;
-        this.selectedChoice = null;
-
-        if (this.currentQuiz.questionIndex >= patient.questions.length) {
-            this.time.delayedCall(1200, () => this.finishQuiz());
-        } else {
-            this.time.delayedCall(1200, () => this.renderQuizQuestion());
-        }
-    }
-
-    finishQuiz() {
-        if (!this.currentQuiz) return;
-        const patient = this.patients[this.currentQuiz.patientIndex];
-        const score = this.currentQuiz.correctCount;
-        this.hideQuizPanel();
-patient.quizScore = score;
-if (score < 3) patient.wasWrongChoice = true;
-        if (score >= 3) {
-            patient.status = "inTreatment";
-            patient.health = Math.max(patient.health, 60);
-            this.occupiedBeds++;
-            this.showCurtain(this.currentQuiz.patientIndex);
-            this.updateHealthDisplay(this.currentQuiz.patientIndex);
-            this.updateUI();
-            this.startTreatment(this.currentQuiz.patientIndex);
-            this.uiText.setText(`${patient.name} is admitted. Correct answers: ${score}/5.`);
-            this.checkEnableDoorPatients();
-        } else {
-            // Health declines by 5% (same penalty as failed prescription)
-            patient.health = Math.max(0, patient.health * 0.95);
-            this.updateHealthDisplay(this.currentQuiz.patientIndex);
-            this.uiText.setText(`${patient.name} answered ${score}/5. Health declines - your choices are not according to patient prescription.`);
-            
-            if (patient.health <= 0) {
-                this.removePatient(this.currentQuiz.patientIndex, false);
-            } else {
-                // Same as SKIP button - hide report and start health drain
-                patient.wasSkipped = true;
-                this.hideReportPanel();
-                this.startHealthDrain(this.currentQuiz.patientIndex, 5);
-            }
-        }
-
-        this.currentQuiz = null;
-        this.selectedChoice = null;
-    }
+    closeReport() {}
 
     showCurtain(index) {
+        const patient = this.patients[index];
         const curtain = this.curtains[index];
         const card = this.cards[index];
         if (curtain) {
+            if (patient && patient.status === "inTreatment") {
+                const spacing = this.scale.width / 4;
+                const bedX = patient.mainSlot != null ? spacing * (patient.mainSlot + 1) : card ? card.x : curtain.x;
+                curtain.setPosition(bedX + 130, this.scale.height * 0.44);
+            }
             curtain.setVisible(true);
         }
         if (card) {
@@ -1190,7 +845,7 @@ if (score < 3) patient.wasWrongChoice = true;
 
     findFreeMainSlot() {
         for (let slot = 0; slot < 3; slot++) {
-            const occupied = this.patients.some(p => p && p.mainSlot === slot && p.status !== "dead" && p.status !== "treated");
+            const occupied = this.patients.some(p => p && p.mainSlot === slot && p.status === "inTreatment");
             if (!occupied) {
                 return slot;
             }
@@ -1211,7 +866,7 @@ if (score < 3) patient.wasWrongChoice = true;
             const { x, y } = this.getDoorSlot(doorIndex);
             card.setPosition(x, y);
             card.setScale(0.28);
-            curtain.setPosition(x, this.scale.height * 0.44);
+            curtain.setPosition(x + 65, this.scale.height * 0.44);
             display.bg.setX(x - 60);
             display.bg.setY(y);
             display.fill.setX(x - 60);
@@ -1293,7 +948,7 @@ if (score < 3) patient.wasWrongChoice = true;
         }
     }
 
-    removePatient(index, survived) {
+    removePatient(index, survived, nextDelay = null) {
         const patient = this.patients[index];
         if (!patient) return;
 
@@ -1316,13 +971,9 @@ if (score < 3) patient.wasWrongChoice = true;
 
         let outcomeText;
 if (survived) {
-    outcomeText = `Doctor made correct treatment decisions (${patient.quizScore}/5 answers correct). ` +
-                  `Prescribing IVIG/plasmapheresis and proper ICU support led to recovery.`;
+    outcomeText = `Doctor treated the patient in time. ICU care and monitoring led to recovery.`;
 } else if (patient.wasSkipped) {
     outcomeText = `Doctor ignored the patient. No treatment was prescribed — patient deteriorated without care.`;
-} else if (patient.wasWrongChoice) {
-    outcomeText = `Doctor made wrong choices to treat the patient (${patient.quizScore}/5 answers correct). ` +
-                  `Incorrect prescription caused further deterioration and death.`;
 } else {
     outcomeText = `Patient received no treatment in time and deteriorated while waiting.`;
 }
@@ -1333,8 +984,6 @@ this.results.push({
     disease: patient.disease,
     survived: survived,
     wasSkipped: patient.wasSkipped || false,
-    wasWrongChoice: patient.wasWrongChoice || false,
-    quizScore: patient.quizScore ?? null,
     outcome: outcomeText
 });
 
@@ -1360,8 +1009,15 @@ this.results.push({
             this.hideReportPanel();
         }
 
+        if (this.patientDecisionEvents[index]) {
+            this.patientDecisionEvents[index].remove(false);
+            this.patientDecisionEvents[index] = null;
+        }
+
         this.updateUI();
-        this.checkEnableDoorPatients();
+        if (typeof nextDelay === "number") {
+            this.scheduleNextPatient(nextDelay);
+        }
         this.checkForEnd();
     }
 
@@ -1395,29 +1051,32 @@ this.results.push({
 
         const p = this.patients[this.selected];
         if (!p) return;
+        if (p.status !== "atDoor") return;
 
-        const giveBed = give && this.occupiedBeds < this.totalBeds;
+        const freeSlot = this.findFreeMainSlot();
+        const giveBed = give && this.occupiedBeds < this.totalBeds && freeSlot !== null;
 
         if (giveBed) {
             this.occupiedBeds++;
             p.status = "inTreatment";
+            p.mainSlot = freeSlot;
             p.health = Math.max(p.health, 40);
+            this.updatePatientPosition(this.selected);
             this.updateHealthDisplay(this.selected);
             this.showCurtain(this.selected);
             this.updateUI();
             this.hideReportPanel();
             this.startTreatment(this.selected);
-            this.checkEnableDoorPatients();
             return;
         }
 
-        if (give && this.occupiedBeds >= this.totalBeds) {
+        if (give && (this.occupiedBeds >= this.totalBeds || freeSlot === null)) {
             this.uiText.setText(`No beds available — ${this.occupiedBeds}/${this.totalBeds} occupied`);
             return;
         }
 
         p.wasSkipped = true;
-this.hideReportPanel();
-this.startHealthDrain(this.selected, 5);
+        this.hideReportPanel();
+        this.removePatient(this.selected, false, null);
     }
 }
