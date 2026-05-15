@@ -6,6 +6,7 @@ export default class ResultScene extends Phaser.Scene {
     init(data) {
         this.results = data.results || [];
         this.bedsLeft = data.bedsLeft || 0;
+        this.score = data.score || 0;
     }
 
     create() {
@@ -226,8 +227,18 @@ export default class ResultScene extends Phaser.Scene {
             accentColor = 0x22c55e; bgColor = 0x0d1f14;
             badgeText = "SURVIVED"; outcomeTextColor = "#86efac";
         } else if (r.wasSkipped) {
-            accentColor = 0xf59e0b; bgColor = 0x1c1400;
-            badgeText = "IGNORED"; outcomeTextColor = "#fcd34d";
+            if (r.notZikaDecision !== undefined) {
+                if (r.notZikaDecision) {
+                    accentColor = 0x22c55e; bgColor = 0x0d1f14;
+                    badgeText = "CORRECT"; outcomeTextColor = "#86efac";
+                } else {
+                    accentColor = 0xef4444; bgColor = 0x1f0a0a;
+                    badgeText = "INCORRECT"; outcomeTextColor = "#fca5a5";
+                }
+            } else {
+                accentColor = 0xf59e0b; bgColor = 0x1c1400;
+                badgeText = "IGNORED"; outcomeTextColor = "#fcd34d";
+            }
         } else {
             accentColor = 0x6b7280; bgColor = 0x111318;
             badgeText = "DIED WAITING"; outcomeTextColor = "#d1d5db";
@@ -284,6 +295,29 @@ export default class ResultScene extends Phaser.Scene {
             wordWrap: { width: w - 200 }
         }));
 
+        // Zika status indicator
+        if (r.isZikaPatient !== undefined) {
+            const zikaBadge = this.add.graphics();
+            const zikaText = r.isZikaPatient ? "ZIKA" : "NON-ZIKA";
+            const zikaColor = r.isZikaPatient ? 0xef4444 : 0x22c55e;
+            const zikaBadgeW = zikaText.length * 7 + 12;
+            const zikaBadgeX = x + w - zikaBadgeW - 14;
+            const zikaBadgeY = y + 38;
+            
+            zikaBadge.fillStyle(zikaColor, 0.2);
+            zikaBadge.lineStyle(1, zikaColor, 0.6);
+            zikaBadge.fillRoundedRect(zikaBadgeX, zikaBadgeY, zikaBadgeW, 18, 3);
+            zikaBadge.strokeRoundedRect(zikaBadgeX, zikaBadgeY, zikaBadgeW, 18, 3);
+            add(zikaBadge);
+
+            add(this.add.text(zikaBadgeX + zikaBadgeW / 2, zikaBadgeY + 9, zikaText, {
+                fontSize: "9px",
+                color: r.isZikaPatient ? "#fca5a5" : "#86efac",
+                fontFamily: "monospace",
+                fontStyle: "bold"
+            }).setOrigin(0.5));
+        }
+
         // Divider
         const div = this.add.graphics();
         div.lineStyle(1, accentColor, 0.15);
@@ -325,7 +359,7 @@ export default class ResultScene extends Phaser.Scene {
         const stats = [
             { label: "PATIENTS SAVED", value: `${survived} / ${total}`, color: "#22c55e" },
             { label: "SURVIVAL RATE",  value: `${rate}%`, color: rate >= 60 ? "#22c55e" : rate >= 40 ? "#f59e0b" : "#ef4444" },
-            { label: "BEDS UNUSED",    value: `${this.bedsLeft}`, color: "#60a5fa" }
+            { label: "TOTAL SCORE",    value: `${this.score}`, color: this.score >= 0 ? "#22c55e" : "#ef4444" }
         ];
 
         const colW = cardW / 3;
@@ -351,10 +385,21 @@ export default class ResultScene extends Phaser.Scene {
         });
 
         // Verdict text
-        const verdict = rate >= 60 ? "Good shift — most patients survived."
-            : rate >= 40 ? "Difficult shift — several patients were lost."
-            : "Critical outcome — review your decisions carefully.";
-        const vColor = rate >= 60 ? "#86efac" : rate >= 40 ? "#fcd34d" : "#fca5a5";
+        let verdict;
+        let vColor;
+        if (this.score >= 60) {
+            verdict = "Excellent performance — made mostly correct decisions.";
+            vColor = "#86efac";
+        } else if (this.score >= 20) {
+            verdict = "Good performance — room for improvement in diagnosis.";
+            vColor = "#fcd34d";
+        } else if (this.score >= 0) {
+            verdict = "Average performance — review your decision criteria.";
+            vColor = "#fcd34d";
+        } else {
+            verdict = "Poor performance — incorrect decisions outweighed correct ones.";
+            vColor = "#fca5a5";
+        }
 
         add(this.add.text(W / 2, y + panelH + 14, verdict, {
             fontSize: "13px", color: vColor, fontStyle: "italic", align: "center"

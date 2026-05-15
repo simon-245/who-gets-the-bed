@@ -14,6 +14,7 @@ export default class GameScene extends Phaser.Scene {
         this.load.image("old_woman", "images/old_woman.png");
         this.load.image("fever_child", "images/fever child.png");
         this.load.image("woman", "images/woman.png");
+        this.load.image("boy", "images/boy.png");
         this.load.image("curtain", "images/curton.jpeg");
 
         this.load.image("report", "images/patient_report.png");
@@ -52,6 +53,7 @@ export default class GameScene extends Phaser.Scene {
         this.occupiedBeds = 0;
         this.selected = null;
         this.results = [];
+        this.score = 0;
 
         this.patients = [
             {
@@ -62,7 +64,8 @@ export default class GameScene extends Phaser.Scene {
                 health: 20,
                 status: "queued",
                 mainSlot: 0,
-                disease: "Guillain Barré Syndrome (Zika related)",
+                isZikaPatient: true,
+                disease: "Guillain Barré Syndrome",
                 outcomeReason: "",
                 symptoms: "• Progressive weakness starting in legs\n• Ascending paralysis\n• Mild respiratory compromise\n• Reflexes diminished\n• Recent fever and rash 2 weeks ago\n• Difficulty walking",
                 briefing: "GBS is an autoimmune disorder where the immune system attacks the peripheral nervous system. The progressive weakness and ascending paralysis are hallmark signs. Despite severity, early ICU admission with respiratory support offers good recovery prospects in younger patients.",
@@ -123,7 +126,8 @@ export default class GameScene extends Phaser.Scene {
                 health: 45,
                 status: "queued",
                 mainSlot: 1,
-                disease: "Severe Guillain Barré Syndrome (Zika related)",
+                isZikaPatient: true,
+                disease: "Severe Guillain Barré Syndrome",
                 symptoms: "• Rapidly progressing paralysis\n• Severe respiratory failure\n• Requires intubation\n• Complete loss of leg mobility\n• Weakness in upper extremities\n• CSF protein elevated\n• EMG shows demyelination",
                 briefing: "This is a critical case with respiratory muscles paralyzed. Mechanical ventilation is essential. Age and rapid progression indicate higher mortality risk. Demyelination on EMG confirms axonal damage. ICU management with immunotherapy is standard care.",
                 vitals: "BP 88/52 · HR 118 · RR 28 (ventilated) · GCS 8",
@@ -183,7 +187,8 @@ export default class GameScene extends Phaser.Scene {
                 health: 25,
                 status: "queued",
                 mainSlot: 2,
-                disease: "Guillain Barré Syndrome with Autonomic Dysfunction (Zika related)",
+                isZikaPatient: true,
+                disease: "Guillain Barré Syndrome with Autonomic Dysfunction",
                 symptoms: "• Moderate ascending paralysis\n• Facial weakness\n• Dysarthria\n• Autonomic instability\n• Fluctuating BP and HR\n• History of Zika infection 3 weeks ago\n• Respiratory function declining",
                 briefing: "Autonomic dysfunction complicates her GBS, causing blood pressure and heart rate fluctuations. This requires careful hemodynamic monitoring. Facial weakness and dysarthria indicate cranial nerve involvement. Close respiratory monitoring needed as function is still declining.",
                 vitals: "BP 105/62 · HR 112 · RR 22 · GCS 13",
@@ -240,8 +245,9 @@ export default class GameScene extends Phaser.Scene {
                 age: 75,
                 survival: 0.3,
                 sprite: "old_woman",
-                health: 30,
+                health: 40,
                 status: "queued",
+                isZikaPatient: true,
                 disease: "Severe Guillain-Barré Syndrome with Respiratory Failure",
                 symptoms: "• Severe muscle weakness and paralysis\n• Complete respiratory failure requiring ventilation\n• Advanced age with comorbidities\n• Rapid deterioration\n• History of recent infection\n• Elevated CSF protein levels",
                 briefing: "This elderly patient has severe GBS with complete respiratory paralysis. Age significantly reduces survival chances. Requires immediate intubation and ventilatory support. Immunotherapy may be less effective due to age. High risk of complications.",
@@ -299,8 +305,9 @@ export default class GameScene extends Phaser.Scene {
                 age: 7,
                 survival: 0.5,
                 sprite: "fever_child",
-                health: 10,
+                health: 50,
                 status: "queued",
+                isZikaPatient: false,
                 disease: "High fever with weakness",
                 symptoms: "• High fever\n• Chills\n• Lethargy\n• Poor appetite\n• Generalized weakness",
                 briefing: "This child is waiting at the door with a high fever and signs of dehydration. Prompt evaluation and supportive care are needed.",
@@ -360,6 +367,7 @@ export default class GameScene extends Phaser.Scene {
                 sprite: "woman",
                 health: 26,
                 status: "queued",
+                isZikaPatient: true,
                 disease: "Guillain-Barré Syndrome with Mild Respiratory Involvement",
                 symptoms: "• Progressive weakness in legs and arms\n• Mild difficulty breathing\n• Facial weakness\n• Reduced reflexes\n• Recent viral illness\n• CSF analysis pending",
                 briefing: "Moderate GBS with early respiratory involvement. Requires close monitoring for respiratory deterioration. Standard immunotherapy should be initiated promptly. Good potential for recovery with early intervention.",
@@ -411,6 +419,67 @@ export default class GameScene extends Phaser.Scene {
                         ]
                     }
                 ]
+            },
+            {
+                name: "Boy",
+                age: 8,
+                survival: 0.9,
+                sprite: "boy",
+                health: 85,
+                status: "queued",
+                mainSlot: 3,
+                isZikaPatient: false,
+                disease: "Common Cold with Mild Fever",
+                symptoms: "• Low-grade fever (100.2°F)\n• Runny nose\n• Mild cough\n• Sore throat\n• No difficulty breathing\n• Active and playful\n• Good appetite",
+                briefing: "This child has a common cold with mild fever. No signs of serious illness. Vital signs are normal. No ICU admission required. Can be managed at home with rest and fluids.",
+                vitals: "BP 105/65 · HR 95 · RR 18 · GCS 15",
+                questions: [
+                    {
+                        prompt: "Does this child need ICU admission?",
+                        choices: [
+                            { text: "No, can be managed at home", correct: true },
+                            { text: "Yes, immediately", correct: false },
+                            { text: "Maybe, needs observation", correct: false },
+                            { text: "Yes, for fever monitoring", correct: false }
+                        ]
+                    },
+                    {
+                        prompt: "What is the appropriate treatment for this child?",
+                        choices: [
+                            { text: "Rest, fluids, and paracetamol for fever", correct: true },
+                            { text: "IV antibiotics immediately", correct: false },
+                            { text: "Mechanical ventilation", correct: false },
+                            { text: "ICU admission for monitoring", correct: false }
+                        ]
+                    },
+                    {
+                        prompt: "Is this condition life-threatening?",
+                        choices: [
+                            { text: "No, it's a common cold", correct: true },
+                            { text: "Yes, very dangerous", correct: false },
+                            { text: "Possibly, needs testing", correct: false },
+                            { text: "Yes, requires emergency care", correct: false }
+                        ]
+                    },
+                    {
+                        prompt: "What should the doctor do?",
+                        choices: [
+                            { text: "Send home with home care instructions", correct: true },
+                            { text: "Admit to ICU", correct: false },
+                            { text: "Start emergency treatment", correct: false },
+                            { text: "Order extensive testing", correct: false }
+                        ]
+                    },
+                    {
+                        prompt: "What is the expected outcome?",
+                        choices: [
+                            { text: "Full recovery in a few days", correct: true },
+                            { text: "Requires hospitalization", correct: false },
+                            { text: "Will deteriorate without ICU", correct: false },
+                            { text: "Life-threatening condition", correct: false }
+                        ]
+                    }
+                ]
             }
         ];
 
@@ -431,6 +500,14 @@ this.uiText = this.add.text(20, 20, "Select patient", {
     padding: { x: 5, y: 5 }
 }).setDepth(20);
 this.uiText.setVisible(true);
+
+this.scoreText = this.add.text(this.scale.width - 20, 20, "Score: 0", {
+    fontSize: "20px",
+    color: "#fff",
+    backgroundColor: "#1f4f8b",
+    padding: { x: 10, y: 5 }
+}).setOrigin(1, 0).setDepth(20);
+this.scoreText.setVisible(true);
         // =====================
         // DIAGNOSIS PANEL
         // =====================
@@ -480,7 +557,7 @@ this.uiText.setVisible(true);
         // =====================
         this.briefingText = this.add.text(
             this.scale.width - 40,
-            this.scale.height / 3.5 - 80,
+            this.scale.height / 3.5 - 180,
             "",
             {
                 fontSize: "16px",
@@ -558,7 +635,7 @@ this.uiText.setVisible(true);
 
             card.on("pointerdown", () => {
                 const current = this.patients[i];
-                if (!current || current.status !== "atDoor") return;
+                if (!current || current.status !== "at Door") return;
                 this.selected = i;
                 this.updateUI();
                 this.showPatientReport(i);
@@ -599,6 +676,16 @@ this.uiText.setVisible(true);
         .setDepth(50);
         this.giveBtn.setVisible(false);
 
+        this.notZikaBtn = this.add.text(this.scale.width / 2 - 100, this.scale.height - 100, "NOT ZIKA PATIENT", {
+            fontSize: "20px",
+            backgroundColor: "#FF9800",
+            color: "#fff",
+            padding: { x: 12, y: 8 }
+        })
+        .setInteractive()
+        .setDepth(50);
+        this.notZikaBtn.setVisible(false);
+
         this.skipBtn = this.add.text(this.scale.width - 180, this.scale.height - 100, "SKIP", {
             fontSize: "24px",
             backgroundColor: "#D32F2F",
@@ -610,6 +697,7 @@ this.uiText.setVisible(true);
         this.skipBtn.setVisible(false);
 
         this.giveBtn.on("pointerdown", () => this.decide(true));
+        this.notZikaBtn.on("pointerdown", () => this.decideNotZika());
         this.skipBtn.on("pointerdown", () => this.decide(false));
 
         this.scheduleNextPatient(1000);
@@ -653,6 +741,10 @@ Beds occupied: ${this.occupiedBeds}/${this.totalBeds}`
         );
     }
 
+    updateScoreDisplay() {
+        this.scoreText.setText(`Score: ${this.score}`);
+    }
+
     showPatientReport(index) {
         const patient = this.patients[index];
         if (!patient) return;
@@ -665,6 +757,7 @@ Beds occupied: ${this.occupiedBeds}/${this.totalBeds}`
         this.medicalReference.setVisible(true);
         this.timerText.setVisible(true);
         this.giveBtn.setVisible(true);
+        this.notZikaBtn.setVisible(true);
         this.skipBtn.setVisible(true);
 
         this.symptomText.setText(
@@ -697,7 +790,7 @@ ${patient.vitals}`
         }
 
         const patient = this.patients[nextIndex];
-        patient.status = "atDoor";
+        patient.status = "at Door";
         this.selected = null;
         this.updateUI();
 
@@ -716,16 +809,7 @@ ${patient.vitals}`
         this.updateHealthDisplay(nextIndex);
         this.refreshDoorPositions();
 
-        if (this.patientDecisionEvents[nextIndex]) {
-            this.patientDecisionEvents[nextIndex].remove(false);
-            this.patientDecisionEvents[nextIndex] = null;
-        }
-        this.patientDecisionEvents[nextIndex] = this.time.delayedCall(30000, () => {
-            const current = this.patients[nextIndex];
-            if (!current || current.status !== "atDoor") return;
-            current.wasSkipped = true;
-            this.removePatient(nextIndex, false, 0);
-        });
+        // Removed auto-remove timer - patients should not disappear before doctor decision
 
         this.scheduleNextPatient(10000);
     }
@@ -763,7 +847,7 @@ ${patient.vitals}`
 
     startTreatment(index) {
         const patient = this.patients[index];
-        if (!patient || patient.status !== "inTreatment") return;
+        if (!patient || patient.status !== "in Treatment") return;
         if (this.treatmentEvents[index]) return;
 
         if (this.healthDrainEvents[index]) {
@@ -776,7 +860,7 @@ ${patient.vitals}`
             loop: true,
             callback: () => {
                 const current = this.patients[index];
-                if (!current || current.status !== "inTreatment") {
+                if (!current || current.status !== "in Treatment") {
                     this.treatmentEvents[index].remove(false);
                     this.treatmentEvents[index] = null;
                     return;
@@ -813,7 +897,7 @@ ${patient.vitals}`
         const curtain = this.curtains[index];
         const card = this.cards[index];
         if (curtain) {
-            if (patient && patient.status === "inTreatment") {
+            if (patient && patient.status === "in Treatment") {
                 const spacing = this.scale.width / 4;
                 const bedX = patient.mainSlot != null ? spacing * (patient.mainSlot + 1) : card ? card.x : curtain.x;
                 curtain.setPosition(bedX + 130, this.scale.height * 0.44);
@@ -845,7 +929,7 @@ ${patient.vitals}`
 
     findFreeMainSlot() {
         for (let slot = 0; slot < 3; slot++) {
-            const occupied = this.patients.some(p => p && p.mainSlot === slot && p.status === "inTreatment");
+            const occupied = this.patients.some(p => p && p.mainSlot === slot && p.status === "in Treatment");
             if (!occupied) {
                 return slot;
             }
@@ -860,8 +944,8 @@ ${patient.vitals}`
         const display = this.healthDisplays[index];
         if (!patient || !card || !curtain || !display) return;
 
-        if (patient.status === "atDoor") {
-            const doorPatients = this.patients.filter(p => p && p.status === "atDoor");
+        if (patient.status === "at Door") {
+            const doorPatients = this.patients.filter(p => p && p.status === "at Door");
             const doorIndex = doorPatients.indexOf(patient);
             const { x, y } = this.getDoorSlot(doorIndex);
             card.setPosition(x, y);
@@ -873,7 +957,7 @@ ${patient.vitals}`
             display.fill.setY(y);
             display.label.setX(x);
             display.label.setY(y);
-        } else if (patient.status === "waiting" || patient.status === "inTreatment") {
+        } else if (patient.status === "waiting" || patient.status === "in Treatment") {
             const spacing = this.scale.width / 4;
             let x;
             const patientIndex = this.patients.indexOf(patient);
@@ -882,7 +966,7 @@ ${patient.vitals}`
             } else if (patientIndex >= 0 && patientIndex < 3) {
                 x = spacing * (patientIndex + 1);
             } else {
-                const waitingPatients = this.patients.filter(p => p && (p.status === "waiting" || p.status === "inTreatment") && p.mainSlot == null);
+                const waitingPatients = this.patients.filter(p => p && (p.status === "waiting" || p.status === "in Treatment") && p.mainSlot == null);
                 const waitingIndex = waitingPatients.indexOf(patient);
                 const slot = this.getWaitingSlot(waitingIndex);
                 x = slot.x;
@@ -902,7 +986,7 @@ ${patient.vitals}`
 
     refreshDoorPositions() {
         this.patients.forEach((patient, index) => {
-            if (patient && patient.status === "atDoor") {
+            if (patient && patient.status === "at Door") {
                 this.updatePatientPosition(index);
             }
         });
@@ -910,7 +994,7 @@ ${patient.vitals}`
 
     refreshWaitingPositions() {
         this.patients.forEach((patient, index) => {
-            if (patient && (patient.status === "waiting" || patient.status === "inTreatment")) {
+            if (patient && (patient.status === "waiting" || patient.status === "in Treatment")) {
                 this.updatePatientPosition(index);
             }
         });
@@ -935,6 +1019,7 @@ ${patient.vitals}`
         this.medicalReference.setVisible(false);
         this.timerText.setVisible(false);
         this.giveBtn.setVisible(false);
+        this.notZikaBtn.setVisible(false);
         this.skipBtn.setVisible(false);
 
         if (this.diagnosisTimer) {
@@ -964,16 +1049,27 @@ ${patient.vitals}`
 
         // Move door patient to the removed patient's position if it's Anna, John, or Maria
 
-        if (patient.status === "inTreatment" && survived) {
+        if (patient.status === "in Treatment") {
             this.occupiedBeds = Math.max(0, this.occupiedBeds - 1);
             this.hideCurtain(index);
+            
+            // Automatically allocate bed to waiting patient who was approved by doctor
+            this.allocateBedToWaitingPatient();
         }
 
         let outcomeText;
 if (survived) {
     outcomeText = `Doctor treated the patient in time. ICU care and monitoring led to recovery.`;
 } else if (patient.wasSkipped) {
-    outcomeText = `Doctor ignored the patient. No treatment was prescribed — patient deteriorated without care.`;
+    if (patient.notZikaDecision !== undefined) {
+        if (patient.notZikaDecision) {
+            outcomeText = `Doctor correctly identified this as a non-Zika patient and skipped them. Patient was ${patient.isZikaPatient ? 'actually a Zika patient (incorrect decision)' : 'not a Zika patient (correct decision)'}.`;
+        } else {
+            outcomeText = `Doctor incorrectly identified this as a non-Zika patient. Patient was ${patient.isZikaPatient ? 'actually a Zika patient (incorrect decision)' : 'not a Zika patient (correct decision)'}.`;
+        }
+    } else {
+        outcomeText = `Doctor ignored the patient. No treatment was prescribed — patient deteriorated without care.`;
+    }
 } else {
     outcomeText = `Patient received no treatment in time and deteriorated while waiting.`;
 }
@@ -984,6 +1080,8 @@ this.results.push({
     disease: patient.disease,
     survived: survived,
     wasSkipped: patient.wasSkipped || false,
+    isZikaPatient: patient.isZikaPatient,
+    notZikaDecision: patient.notZikaDecision,
     outcome: outcomeText
 });
 
@@ -1027,15 +1125,83 @@ this.results.push({
             this.time.delayedCall(500, () => {
                 this.scene.start("ResultScene", {
                     results: this.results,
-                    bedsLeft: this.totalBeds - this.occupiedBeds
+                    bedsLeft: this.totalBeds - this.occupiedBeds,
+                    score: this.score
                 });
             });
         }
     }
 
+    allocateBedToWaitingPatient() {
+        // Find a patient at the door who was approved for a bed
+        const waitingIndex = this.patients.findIndex(p => p && p.status === "at Door" && p.bedApproved);
+        
+        if (waitingIndex === -1) return; // No patient at door with bed approval
+        
+        const freeSlot = this.findFreeMainSlot();
+        if (freeSlot === null) return; // No free bed available
+        
+        const patient = this.patients[waitingIndex];
+        
+        // Allocate the bed
+        this.occupiedBeds++;
+        patient.status = "in Treatment";
+        patient.mainSlot = freeSlot;
+        patient.bedApproved = false; // Clear the approval flag
+        
+        // Stop health drain for waiting patient
+        if (this.healthDrainEvents[waitingIndex]) {
+            this.healthDrainEvents[waitingIndex].remove(false);
+            this.healthDrainEvents[waitingIndex] = null;
+        }
+        
+        // Update patient position and display
+        this.updatePatientPosition(waitingIndex);
+        this.updateHealthDisplay(waitingIndex);
+        this.showCurtain(waitingIndex);
+        this.updateUI();
+        
+        // Start treatment
+        this.startTreatment(waitingIndex);
+    }
+
     // =====================
     // DECISION LOGIC
     // =====================
+    decideNotZika() {
+        this.diagnosisImage.setVisible(false);
+        this.symptomText.setVisible(false);
+        this.briefingBackground.setVisible(false);
+        this.briefingText.setVisible(false);
+        this.medicalReference.setVisible(false);
+        this.timerText.setVisible(false);
+        this.giveBtn.setVisible(false);
+        this.notZikaBtn.setVisible(false);
+        this.skipBtn.setVisible(false);
+
+        if (this.selected === null) return;
+
+        const p = this.patients[this.selected];
+        if (!p) return;
+        if (p.status !== "at Door") return;
+
+        // Track whether the doctor correctly identified the patient as non-Zika
+        const correctlyIdentified = !p.isZikaPatient;
+        p.notZikaDecision = correctlyIdentified;
+        p.wasSkipped = true;
+
+        // Update score based on correct/incorrect decision
+        if (correctlyIdentified) {
+            this.score += 20; // Correct: identified non-Zika patient
+        } else {
+            this.score -= 5; // Incorrect: identified Zika patient as non-Zika
+        }
+        this.updateScoreDisplay();
+
+        this.hideReportPanel();
+        this.removePatient(this.selected, false, null);
+    }
+
     decide(give) {
 
         this.diagnosisImage.setVisible(false);
@@ -1045,20 +1211,29 @@ this.results.push({
         this.medicalReference.setVisible(false);
         this.timerText.setVisible(false);
         this.giveBtn.setVisible(false);
+        this.notZikaBtn.setVisible(false);
         this.skipBtn.setVisible(false);
 
         if (this.selected === null) return;
 
         const p = this.patients[this.selected];
         if (!p) return;
-        if (p.status !== "atDoor") return;
+        if (p.status !== "at Door") return;
 
         const freeSlot = this.findFreeMainSlot();
         const giveBed = give && this.occupiedBeds < this.totalBeds && freeSlot !== null;
 
         if (giveBed) {
+            // Update score based on correct/incorrect decision
+            if (p.isZikaPatient) {
+                this.score += 20; // Correct: giving bed to Zika patient
+            } else {
+                this.score -= 5; // Incorrect: giving bed to non-Zika patient
+            }
+            this.updateScoreDisplay();
+
             this.occupiedBeds++;
-            p.status = "inTreatment";
+            p.status = "in Treatment";
             p.mainSlot = freeSlot;
             p.health = Math.max(p.health, 40);
             this.updatePatientPosition(this.selected);
@@ -1071,7 +1246,20 @@ this.results.push({
         }
 
         if (give && (this.occupiedBeds >= this.totalBeds || freeSlot === null)) {
-            this.uiText.setText(`No beds available — ${this.occupiedBeds}/${this.totalBeds} occupied`);
+            // Update score based on correct/incorrect decision
+            if (p.isZikaPatient) {
+                this.score += 20; // Correct: approving Zika patient for bed
+            } else {
+                this.score -= 5; // Incorrect: approving non-Zika patient for bed
+            }
+            this.updateScoreDisplay();
+
+            // Put patient in waiting queue at door position
+            p.bedApproved = true;
+            this.updateHealthDisplay(this.selected);
+            this.hideReportPanel();
+            this.startHealthDrain(this.selected, 3);
+            this.updateUI();
             return;
         }
 
