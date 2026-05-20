@@ -45,6 +45,33 @@ export default class GameScene extends Phaser.Scene {
 
         this.doctor.setScale(0.35);
         this.doctor.setDepth(20);
+        this.doctor.setInteractive({ useHandCursor: true });
+
+        // Dialogue text (hidden initially)
+        this.doctorDialogue = this.add.text(
+            this.scale.width * 0.86,
+            this.scale.height * 0.78 - 80,
+            "I need to checkup patients i am busy",
+            {
+                fontSize: "16px",
+                color: "#ffffff",
+                backgroundColor: "#000000",
+                padding: { x: 10, y: 5 }
+            }
+        )
+            .setOrigin(0.5)
+            .setDepth(21)
+            .setVisible(false);
+
+        // Click handler for doctor
+        this.doctor.on("pointerdown", () => {
+            this.doctorDialogue.setVisible(true);
+
+            // Hide dialogue after 3 seconds
+            this.time.delayedCall(3000, () => {
+                this.doctorDialogue.setVisible(false);
+            });
+        });
 
         // =====================
         // STATE
@@ -493,6 +520,8 @@ export default class GameScene extends Phaser.Scene {
         // UI
         // =====================
 
+        this.input.setDefaultCursor('pointer');
+
 this.uiText = this.add.text(20, 20, "Select patient", {
     fontSize: "20px",
     color: "#000",
@@ -743,6 +772,54 @@ Beds occupied: ${this.occupiedBeds}/${this.totalBeds}`
 
     updateScoreDisplay() {
         this.scoreText.setText(`Score: ${this.score}`);
+    }
+
+    showDoctorDialogue() {
+        // Create dialogue background
+        const dialogueBg = this.add.rectangle(
+            this.scale.width / 2,
+            this.scale.height / 2,
+            400,
+            150,
+            0x1a3a52
+        ).setDepth(100).setInteractive();
+
+        // Create dialogue text
+        const dialogueText = this.add.text(
+            this.scale.width / 2,
+            this.scale.height / 2,
+            "I want to checkup the patients i am busy",
+            {
+                fontSize: "18px",
+                color: "#ffffff",
+                align: "center",
+                wordWrap: { width: 360 },
+                padding: { x: 20, y: 20 }
+            }
+        ).setOrigin(0.5).setDepth(101);
+
+        // Create close button
+        const closeBtn = this.add.text(
+            this.scale.width / 2,
+            this.scale.height / 2 + 50,
+            "CLOSE",
+            {
+                fontSize: "16px",
+                color: "#ffeb3b",
+                backgroundColor: "#000000",
+                padding: { x: 15, y: 8 }
+            }
+        ).setOrigin(0.5).setDepth(102).setInteractive({ useHandCursor: true });
+
+        // Close dialogue on click
+        const closeDialogue = () => {
+            dialogueBg.destroy();
+            dialogueText.destroy();
+            closeBtn.destroy();
+        };
+
+        closeBtn.on("pointerdown", closeDialogue);
+        dialogueBg.on("pointerdown", closeDialogue);
     }
 
     showPatientReport(index) {

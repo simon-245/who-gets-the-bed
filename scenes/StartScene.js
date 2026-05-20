@@ -8,6 +8,8 @@ export default class StartScene extends Phaser.Scene {
   }
 
   create() {
+    this.input.setDefaultCursor('pointer');
+
     this.add.rectangle(200, 300, 400, 600, 0x000000);
 
     this.add.text(120, 200, "WHO GETS THE BED", {

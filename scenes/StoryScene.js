@@ -6,6 +6,8 @@ export default class StoryScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
+    this.input.setDefaultCursor('pointer');
+
     // Background
     this.add
       .rectangle(width / 2, height / 2, width, height, 0x000000)
@@ -16,7 +18,7 @@ export default class StoryScene extends Phaser.Scene {
       .text(
         width / 2,
         height / 2 - 80,
-        "2016. Zika outbreak. A virus spread by a single mosquito bite. Most survive without even knowing they were infected. But some aren't so lucky. A rare complication Guillain Barré Syndrome turns the immune system against the body's own nerves. Paralysis sets in. Breathing stops. The ICU becomes their only hope. Your job? is to whom to assign the bed and whom to not",
+        "2016. Zika outbreak. A virus spread by a single mosquito bite. Most survive without even knowing they were infected. But some aren't so lucky. A rare complication Guillain Barré Syndrome turns the immune system against the body's own nerves. Paralysis sets in. Breathing stops. The ICU becomes their only hope. Your job? To decide who gets a bed and who does not",
         {
           fontSize: "24px",
           color: "#ffffff",

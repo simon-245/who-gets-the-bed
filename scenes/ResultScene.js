@@ -13,6 +13,8 @@ export default class ResultScene extends Phaser.Scene {
         const W = this.scale.width;
         const H = this.scale.height;
 
+        this.input.setDefaultCursor('pointer');
+
         this.cameras.main.fadeIn(600, 0, 0, 0);
 
         // ── Fixed background (never scrolls)
