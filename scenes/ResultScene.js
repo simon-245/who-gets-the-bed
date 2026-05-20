@@ -346,8 +346,22 @@ export default class ResultScene extends Phaser.Scene {
         const add = (obj) => { this.scrollContainer.add(obj); return obj; };
 
         const survived = this.results.filter(r => r.survived).length;
+        const skipped = this.results.filter(r => r.wasSkipped).length;
         const total = this.results.length;
-        const rate = total > 0 ? Math.round((survived / total) * 100) : 0;
+
+        // Calculate success rate based on correct decisions
+        // Correct decision = giving bed to Zika patient OR skipping non-Zika patient
+        let correctDecisions = 0;
+        this.results.forEach(r => {
+            if (r.survived && r.isZikaPatient) {
+                // Correct: gave bed to Zika patient
+                correctDecisions++;
+            } else if (r.wasSkipped && r.notZikaDecision === true && !r.isZikaPatient) {
+                // Correct: correctly identified and skipped non-Zika patient
+                correctDecisions++;
+            }
+        });
+        const successRate = total > 0 ? Math.round((correctDecisions / total) * 100) : 0;
 
         const panelH = 95;
         const panelG = this.add.graphics();
@@ -360,11 +374,12 @@ export default class ResultScene extends Phaser.Scene {
         // Stat columns
         const stats = [
             { label: "PATIENTS SAVED", value: `${survived} / ${total}`, color: "#22c55e" },
-            { label: "SURVIVAL RATE",  value: `${rate}%`, color: rate >= 60 ? "#22c55e" : rate >= 40 ? "#f59e0b" : "#ef4444" },
+            { label: "SKIPPED",       value: `${skipped}`, color: "#f59e0b" },
+            { label: "SUCCESS RATE",  value: `${successRate}%`, color: successRate >= 60 ? "#22c55e" : successRate >= 40 ? "#f59e0b" : "#ef4444" },
             { label: "TOTAL SCORE",    value: `${this.score}`, color: this.score >= 0 ? "#22c55e" : "#ef4444" }
         ];
 
-        const colW = cardW / 3;
+        const colW = cardW / 4;
         stats.forEach((s, i) => {
             const cx = cardX + colW * i + colW / 2;
 
