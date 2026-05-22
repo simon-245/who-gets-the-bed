@@ -1025,15 +1025,15 @@ ${patient.vitals}`
             const doorPatients = this.patients.filter(p => p && p.status === "at Door");
             const doorIndex = doorPatients.indexOf(patient);
             const { x, y } = this.getDoorSlot(doorIndex);
-            card.setPosition(x, y);
+            card.setPosition(x, y - 60);
             card.setScale(0.28);
             curtain.setPosition(x + 65, this.scale.height * 0.44);
             display.bg.setX(x - 60);
-            display.bg.setY(y + 30);
+            display.bg.setY(y - 20);
             display.fill.setX(x - 60);
-            display.fill.setY(y + 30);
+            display.fill.setY(y - 20);
             display.label.setX(x);
-            display.label.setY(y + 30);
+            display.label.setY(y - 20);
         } else if (patient.status === "waiting" || patient.status === "in Treatment") {
             const spacing = this.scale.width / 4;
             let x;
