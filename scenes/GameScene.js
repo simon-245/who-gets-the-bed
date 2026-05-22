@@ -1029,11 +1029,11 @@ ${patient.vitals}`
             card.setScale(0.28);
             curtain.setPosition(x + 65, this.scale.height * 0.44);
             display.bg.setX(x - 60);
-            display.bg.setY(y);
+            display.bg.setY(y + 30);
             display.fill.setX(x - 60);
-            display.fill.setY(y);
+            display.fill.setY(y + 30);
             display.label.setX(x);
-            display.label.setY(y);
+            display.label.setY(y + 30);
         } else if (patient.status === "waiting" || patient.status === "in Treatment") {
             const spacing = this.scale.width / 4;
             let x;
